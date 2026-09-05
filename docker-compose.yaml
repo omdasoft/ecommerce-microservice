@@ -1,0 +1,27 @@
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGO_URI=${MONGO_URI_USERS:-mongodb://mongo:27017/users}
+    networks:
+      - ecommerce-network
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - ecommerce-network
+
+volumes:
+  mongo-data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
