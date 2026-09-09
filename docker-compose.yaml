@@ -5,7 +5,18 @@ services:
       - "5001:5001"
     environment:
       - PORT=5001
-      - MONGO_URI=${MONGO_URI_USERS:-mongodb://mongo:27017/users}
+      - MONGO_URI=${MONGO_URI_USERS}
+    networks:
+      - ecommerce-network
+    depends_on:
+      - mongo
+  product-service:
+    build: ./product-service
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - MONGO_URI=${MONGO_URI_PRODUCTS}
     networks:
       - ecommerce-network
     depends_on:
