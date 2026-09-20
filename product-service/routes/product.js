@@ -14,6 +14,6 @@ router.put('/:id', productController.updateProduct);
 
 router.delete('/:id', productController.deleteProduct);
 
-router.put('/:id/deduct', productController.deductStock);
+router.put('/:id/reserve', productController.reserveStock);
 
 module.exports = router;

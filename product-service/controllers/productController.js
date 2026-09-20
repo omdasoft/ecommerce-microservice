@@ -88,30 +88,34 @@ const deleteProduct = async (req, res) => {
   }
 }
 
-const deductStock = async (req, res) => {
-    const productId = req.params.id;
+const reserveStock = async (req, res) => {
+  const { id: productId } = req.params;
+  
+  const { quantity } = req.body;
 
-    const { quantity } = req.body;
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    return res.status(400).json({ error: 'Quantity must be a positive integer' });
+  }
 
-    try {
-        const product = await Product.findById(productId);
+  try {
+    const product = await Product.findOneAndUpdate(
+      {
+        _id: productId,
+        isAvailable: true,
+        stock: { $gte: quantity }
+      },
+      { $inc: { stock: -quantity } },
+      { new: true, runValidators: true }
+    ).select('_id name price stock isAvailable');
 
-        if (!product) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-
-        if (product.stock < quantity) {
-            return res.status(400).json({ error: 'Insufficient stock' });
-        }
-
-        product.stock -= quantity;
-
-        await product.save();
-
-        res.json({ product });
-    } catch (error) {
-        res.status(error.statusCode || 500).json({ error: error.message });
+    if (!product) {
+      return res.status(409).json({ error: 'Product is unavailable or has insufficient stock' });
     }
+
+    res.json({ product });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ error: error.message });
+  }
 }
 
 module.exports = {
@@ -120,5 +124,5 @@ module.exports = {
   getProduct,
   updateProduct,
   deleteProduct,
-  deductStock
+  reserveStock
 };

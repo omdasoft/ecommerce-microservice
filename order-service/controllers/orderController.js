@@ -43,7 +43,7 @@ const createOrder = async (req, res) => {
         
        await Promise.all(
           items.map(async (item) => {
-            await fetch(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products/${item.productId}/deduct`, {
+            await fetch(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products/${item.productId}/reserve`, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json'
