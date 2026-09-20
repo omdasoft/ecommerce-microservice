@@ -1,13 +1,13 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.*.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install
+RUN npm ci --omit=dev
 
 COPY . .
 
-EXPOSE 3003
+EXPOSE 5002
 
-CMD [ "node", "index.js"]
+CMD [ "node", "app.js"]

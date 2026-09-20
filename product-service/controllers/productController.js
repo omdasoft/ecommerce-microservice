@@ -88,10 +88,37 @@ const deleteProduct = async (req, res) => {
   }
 }
 
+const deductStock = async (req, res) => {
+    const productId = req.params.id;
+
+    const { quantity } = req.body;
+
+    try {
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        if (product.stock < quantity) {
+            return res.status(400).json({ error: 'Insufficient stock' });
+        }
+
+        product.stock -= quantity;
+
+        await product.save();
+
+        res.json({ product });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({ error: error.message });
+    }
+}
+
 module.exports = {
   createProduct,
   getProducts,
   getProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  deductStock
 };
