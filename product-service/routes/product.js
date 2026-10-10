@@ -15,5 +15,6 @@ router.put('/:id', productController.updateProduct);
 router.delete('/:id', productController.deleteProduct);
 
 router.put('/:id/reserve', productController.reserveStock);
+router.put('/:id/reserve/:reservationId/release', productController.releaseStock);
 
 module.exports = router;

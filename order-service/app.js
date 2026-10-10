@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const orderRoutes = require('./routes/order');
+const errorHandler = require('./middleware/errorHandler');
 
 dotenv.config();
 
@@ -12,6 +13,7 @@ const app = express();
 app.use(express.json());
 
 app.use('/api/v1/orders', orderRoutes);
+app.use(errorHandler);
 
 const mongoURI = process.env.MONGO_URI;
 

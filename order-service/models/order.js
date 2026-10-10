@@ -23,8 +23,12 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'completed', 'cancelled'],
+        enum: ['pending', 'awaiting_payment', 'completed', 'cancelled', 'compensation_required'],
         default: 'pending'
+    },
+    compensationPendingProductIds: {
+        type: [String],
+        default: []
     }
 }, {
     timestamps: true
