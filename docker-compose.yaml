@@ -32,6 +32,17 @@ services:
       - ecommerce-network
     depends_on:
       - mongo
+  shopping-cart-service:
+    build: ./shopping-cart-service
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - MONGO_URI=${MONGO_URI_SHOPPING_CART}
+    networks:
+      - ecommerce-network
+    depends_on:
+      - mongo
   mongo:
     image: mongo
     ports:
