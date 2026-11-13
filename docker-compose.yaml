@@ -43,6 +43,17 @@ services:
       - ecommerce-network
     depends_on:
       - mongo
+  payment:
+    build: ./payment-service
+    ports:
+      - "5005:5005"
+    environment:
+      - PORT=5005
+      - MONGO_URI=${MONGO_URI_PAYMENT}
+    networks:
+      - ecommerce-network
+    depends_on:
+      - mongo
   mongo:
     image: mongo
     ports:
