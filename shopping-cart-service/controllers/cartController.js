@@ -47,6 +47,7 @@ const CartStore = async (req, res) => {
 
         res.status(201).json({ cart });
     } catch (error) {
+        console.error('Error adding item to cart:', error);
         if (error.response) {
             const statusCode = error.response.status;
             const message = error.response.data.error;
@@ -112,6 +113,7 @@ const UpdateQuantity = async (req, res) => {
         res.json(cart);
 
     } catch (error) {
+        console.error('Error updating cart item quantity:', error);
         res.status(error.status || 500).json({ error: error.message || 'Server Error' });
     }
 }

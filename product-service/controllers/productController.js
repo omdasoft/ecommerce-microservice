@@ -137,6 +137,7 @@ const reserveStock = async (req, res) => {
 
     res.json({ product, reservationId });
   } catch (error) {
+    console.error('Error reserving stock:', error);
     res.status(error.statusCode || 500).json({ error: error.message });
   }
 }
@@ -176,6 +177,7 @@ const releaseStock = async (req, res) => {
 
     res.json({ product, reservationId });
   } catch (error) {
+    console.error('Error releasing stock:', error);
     res.status(error.statusCode || 500).json({ error: error.message });
   }
 }

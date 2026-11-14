@@ -54,6 +54,7 @@ const createPayment = async (req, res) => {
         });
 
     } catch (error) {
+        console.error('Error creating payment:', error);
         res.status(error.status || 500).json({ 
             status: "fail",
             error: error.message 
@@ -65,7 +66,7 @@ const getPayment = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const payment = Payment.findOne({id});
+        const payment = await Payment.findOne({ _id: id });
 
         if (!payment) {
             res.status(404).json({error: "Payment not found"});

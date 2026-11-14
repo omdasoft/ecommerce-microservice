@@ -43,7 +43,7 @@ services:
       - ecommerce-network
     depends_on:
       - mongo
-  payment:
+  payment-service:
     build: ./payment-service
     ports:
       - "5005:5005"
@@ -62,10 +62,8 @@ services:
       - mongo-data:/data/db
     networks:
       - ecommerce-network
-
 volumes:
   mongo-data:
-
 networks:
   ecommerce-network:
     driver: bridge

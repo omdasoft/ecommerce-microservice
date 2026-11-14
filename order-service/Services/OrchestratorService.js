@@ -1,16 +1,18 @@
 const AppError = require('../errors/AppError');
 const OrderService = require('./OrderService');
 const ProductService = require('./ProductService');
-
+const PaymentService = require('./PaymentService');
 const PRODUCT_UNAVAILABLE_MESSAGE = 'One or more products are unavailable or out of stock';
 
 class OrchestratorService {
     constructor({
         orderService = new OrderService(),
-        productService = new ProductService()
+        productService = new ProductService(),
+        paymentService = new PaymentService()
     } = {}) {
         this.orderService = orderService;
         this.productService = productService;
+        this.paymentService = paymentService;
     }
 
     async compensateReservations(order, productIds) {
@@ -109,7 +111,8 @@ class OrchestratorService {
                 await this.productService.reserveStock(item, order._id.toString());
             }
 
-            return await this.orderService.markAwaitingPayment(order);
+            await this.orderService.markAwaitingPayment(order);
+            return await this.paymentService.createPayment(order);
         } catch (error) {
             if (attemptedProductIds.length === 0) {
                 throw error;
