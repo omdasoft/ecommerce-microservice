@@ -6,6 +6,7 @@ const paymentSchema = new mongoose.Schema({
   status: { type: String, required: true },
   paymentMethod: { type: String, required: true },
   paymentDate: { type: Date, default: Date.now },
+  idempotencyKey: { type: String, required: true, unique: true }
 }, {timestamps: true})
 
 module.exports = mongoose.model("Payment", paymentSchema)

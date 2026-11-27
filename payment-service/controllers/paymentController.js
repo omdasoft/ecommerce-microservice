@@ -21,6 +21,17 @@ const createPayment = async (req, res) => {
     const { amount, paymentMethodId } = req.body;
 
     try {
+        const idempotencyKey = `order:${orderId}:payment-intent`;
+
+        const existingPayment = await Payment.findOne({ idempotencyKey: idempotencyKey });
+
+        if (existingPayment) {
+            return res.status(200).json({
+                paymentId: existingPayment._id,
+                status: existingPayment.status,
+            });
+        }
+
         //create a charge using stripe
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
@@ -30,20 +41,24 @@ const createPayment = async (req, res) => {
                 enabled: true,
                 allow_redirects: 'never'
             },
-            confirm: true
+            confirm: true,
+        }, {
+            idempotencyKey
         });
+
+
+        const needsClientAction = paymentIntent.status === 'requires_action';
 
         //save the payment record
         const payment = new Payment({
             orderId,
             amount,
             status: paymentIntent.status,
-            paymentMethod: "stripe"
+            paymentMethod: "stripe",
+            idempotencyKey: idempotencyKey
         });
 
         await payment.save();
-
-        const needsClientAction = paymentIntent.status === 'requires_action';
 
         res.status(201).json({
             paymentId: payment._id,
