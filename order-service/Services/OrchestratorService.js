@@ -73,8 +73,25 @@ class OrchestratorService {
         return order;
     }
 
-    async placeOrder(orderDetails) {
+    replayOrder(order, items) {
+        const quantities = new Map(order.items.map(item => [item.productId, item.quantity]));
+        if (items.length !== quantities.size || items.some(item => quantities.get(item.productId) !== item.quantity)) {
+            throw new AppError('IDEMPOTENCY_KEY_CONFLICT', 'This checkout key was used for different items', 409);
+        }
+        const inProgress = ['pending', 'awaiting_payment'].includes(order.status);
+        return { statusCode: inProgress ? 202 : 200, body: { orderId: order._id, status: order.status } };
+    }
+
+    async placeOrder(orderDetails, idempotencyKey) {
+
+        if (!idempotencyKey?.trim()) {
+            throw new AppError('MISSING_IDEMPOTENCY_KEY', 'Provide an Idempotency-Key header for checkout', 400);
+        }
+        
         const preparedOrder = this.orderService.prepareOrder(orderDetails);
+        const findExisting = () => this.orderService.findByCheckoutKey(preparedOrder.userId, idempotencyKey);
+        const existing = await findExisting();
+        if (existing) return this.replayOrder(existing, preparedOrder.items);
         const products = await Promise.all(
             preparedOrder.items.map((item) =>
                 this.productService.getProduct(item.productId)
@@ -88,6 +105,8 @@ class OrchestratorService {
         );
 
         if (unavailable) {
+            const concurrentOrder = await findExisting();
+            if (concurrentOrder) return this.replayOrder(concurrentOrder, preparedOrder.items);
             throw new AppError(
                 'PRODUCT_UNAVAILABLE',
                 PRODUCT_UNAVAILABLE_MESSAGE,
@@ -99,10 +118,15 @@ class OrchestratorService {
             preparedOrder.items,
             products
         );
-        const order = await this.orderService.createPendingOrder({
-            ...preparedOrder,
-            totalAmount
-        });
+        let order;
+        try {
+            order = await this.orderService.createPendingOrder({ ...preparedOrder, totalAmount, idempotencyKey });
+        } catch (error) {
+            if (error.code !== 11000 || !error.keyPattern?.idempotencyKey) throw error;
+            const concurrentOrder = await findExisting();
+            if (!concurrentOrder) throw error;
+            return this.replayOrder(concurrentOrder, preparedOrder.items);
+        }
 
         const attemptedProductIds = [];
         try {
@@ -112,7 +136,8 @@ class OrchestratorService {
             }
 
             await this.orderService.markAwaitingPayment(order);
-            return await this.paymentService.createPayment(order);
+            const payment = await this.paymentService.createPayment(order);
+            return { statusCode: 201, body: { ...payment, orderId: order._id } };
         } catch (error) {
             if (attemptedProductIds.length === 0) {
                 throw error;

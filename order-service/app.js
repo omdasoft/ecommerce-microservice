@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const Order = require('./models/order');
 const orderRoutes = require('./routes/order');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -19,13 +20,14 @@ const mongoURI = process.env.MONGO_URI;
 
 mongoose
 .connect(mongoURI)
-.then(() => {
+.then(async () => {
+    await Order.init();
     console.log('Connected to MongoDB');
+    app.listen(port, () => {
+        console.log(`Order service running on port ${port}`);
+    });
 })
 .catch((err) => {
     console.error('Error connecting to MongoDB:', err);
-});
-
-app.listen(port, () => {
-    console.log(`Order service running on port ${port}`);
+    process.exit(1);
 });

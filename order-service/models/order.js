@@ -17,6 +17,7 @@ const orderSchema = new mongoose.Schema({
         required: true
     },
     items: [orderItemsSchema],
+    idempotencyKey: String,
     totalAmount: {
         type: Number,
         required: true
@@ -32,6 +33,11 @@ const orderSchema = new mongoose.Schema({
     }
 }, {
     timestamps: true
+});
+
+orderSchema.index({ userId: 1, idempotencyKey: 1 }, {
+    unique: true,
+    partialFilterExpression: { idempotencyKey: { $type: 'string' } }
 });
 
 module.exports = mongoose.model('Order', orderSchema);

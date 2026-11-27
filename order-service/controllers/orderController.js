@@ -19,8 +19,8 @@ const createOrder = async (req, res, next) => {
         userId: req.userId
       };
 
-      const savedOrder = await orchestratorService.placeOrder(orderDetails);
-      res.status(201).json(savedOrder);
+      const result = await orchestratorService.placeOrder(orderDetails, req.get('Idempotency-Key'));
+      res.status(result.statusCode).json(result.body);
     } catch (error) {
       next(error);
     }

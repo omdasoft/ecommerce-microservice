@@ -76,9 +76,14 @@ class OrderService {
         return totalAmount;
     }
 
-    async createPendingOrder({ userId, items, totalAmount }) {
+    findByCheckoutKey(userId, idempotencyKey) {
+        return this.orderModel.findOne({ userId, idempotencyKey });
+    }
+
+    async createPendingOrder({ userId, items, totalAmount, idempotencyKey }) {
         return new this.orderModel({
             userId,
+            idempotencyKey,
             items,
             totalAmount,
             status: 'pending'
